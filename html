@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>worldconnect | Pro Multi-User Platform</title>
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root { --primary: #6366f1; --bg: #0f172a; --glass: rgba(255, 255, 255, 0.05); }
+        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .container { background: var(--glass); backdrop-filter: blur(12px); padding: 2rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); width: 95%; max-width: 1000px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 20px 0; min-height: 200px; }
+        .video-player { aspect-ratio: 16/9; background: #000; border-radius: 12px; border: 2px solid #334155; position: relative; }
+        #messages { height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; text-align: left; margin: 20px 0; border: 1px solid var(--glass); }
+        input { padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; margin: 5px; flex-grow: 1; }
+        button { padding: 12px 20px; border-radius: 8px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: scale(1.02); }
+        .btn-end { background: #ef4444; }
+        .auth-box { max-width: 400px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>worldconnect 🌍</h1>
+
+        <!-- AUTH SECTION -->
+        <div id="auth-ui" class="auth-box">
+            <input type="text" id="username" placeholder="Display Name (e.g. John)">
+            <input type="email" id="email" placeholder="Email">
+            <input type="password" id="pass" placeholder="Password">
+            <div style="margin-top: 15px;">
+                <button onclick="handleAuth('login')">Login</button>
+                <button onclick="handleAuth('signup')" style="background:transparent; border: 1px solid var(--primary);">Register</button>
+            </div>
+        </div>
+
+        <!-- APP SECTION -->
+        <div id="app-ui" style="display:none;">
+            <h3>Welcome, <span id="user-tag"></span></h3>
+            <div id="video-grid" class="video-grid">
+                <div id="local-player" class="video-player"></div>
+            </div>
+
+            <div class="controls">
+                <button onclick="startCall()">Join Global Call</button>
+                <button class="btn-end" onclick="leaveCall()">Leave Call</button>
+            </div>
+
+            <div id="messages"></div>
+            <div style="display:flex; gap: 10px;">
+                <input type="text" id="msg-input" placeholder="Message the world...">
+                <button onclick="sendMsg()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. FILL THESE KEYS CAREFULLY ---
+        const AGORA_APP_ID = 5920000068ae49eea6e5a4fb5675d8c3
+        const SB_URL = https://supabase.com/dashboard/project/uyhtzjhdepkgrxqgjwma
+        const SB_KEY = uyhtzjhdepkgrxqgjwma
+
+        const supabase = libSupabase.createClient(SB_URL, SB_KEY);
+        let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+        let localTracks = { video: null, audio: null };
+        let currentUsername = "Guest";
+
+        // --- 2. AUTHENTICATION ---
+        async function handleAuth(type) {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('pass').value;
+            currentUsername = document.getElementById('username').value || "User";
+
+            const { data, error } = type === 'login' 
+                ? await supabase.auth.signInWithPassword({ email, password })
+                : await supabase.auth.signUp({ email, password });
+            
+            if (error) alert("Error: " + error.message);
+            else { 
+                document.getElementById('auth-ui').style.display = 'none';
+                document.getElementById('app-ui').style.display = 'block';
+                document.getElementById('user-tag').innerText = currentUsername;
+                initChat();
+            }
+        }
+
+        // --- 3. MULTI-USER VIDEO LOGIC ---
+        async function startCall() {
+            await client.join(AGORA_APP_ID, "global-room", null, null);
+            localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
+            localTracks.video = await AgoraRTC.createCameraVideoTrack();
+            
+            localTracks.video.play("local-player");
+            await client.publish([localTracks.audio, localTracks.video]);
+        }
+
+        // Listen for ANYONE joining
+        client.on("user-published", async (user, mediaType) => {
+            await client.subscribe(user, mediaType);
+            if (mediaType === "video") {
+                const player = document.createElement("div");
+                player.id = `user-${user.uid}`;
+                player.className = "video-player";
+                document.getElementById("video-grid").append(player);
+                user.videoTrack.play(player.id);
+            }
+            if (mediaType === "audio") user.audioTrack.play();
+        });
+
+        client.on("user-left", (user) => {
+            const player = document.getElementById(`user-${user.uid}`);
+            if (player) player.remove();
+        });
+
+        async function leaveCall() {
+            if(localTracks.video) { localTracks.video.stop(); localTracks.video.close(); }
+            if(localTracks.audio) { localTracks.audio.stop(); localTracks.audio.close(); }
+            await client.leave();
+            location.reload();
+        }
+
+        // --- 4. REAL-TIME CHAT ---
+        function initChat() {
+            supabase.channel('global').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+                const div = document.createElement('div');
+                div.style.marginBottom = "8px";
+                div.innerHTML = `<strong style="color:var(--primary)">${payload.new.username}:</strong> ${payload.new.content}`;
+                const msgBox = document.getElementById('messages');
+                msgBox.appendChild(div);
+                msgBox.scrollTop = msgBox.scrollHeight;
+            }).subscribe();
+        }
+
+        async function sendMsg() {
+            const content = document.getElementById('msg-input').value;
+            if (!content) return;
+            await supabase.from('messages').insert([{ content, username: currentUsername }]);
+            document.getElementById('msg-input').value = '';
+        }
+    </script>
+</body>
+</html>
