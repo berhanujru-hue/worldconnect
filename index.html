@@ -58,9 +58,9 @@
 
     <script>
         // --- 1. FILL THESE KEYS CAREFULLY ---
-        const AGORA_APP_ID = 5920000068ae49eea6e5a4fb5675d8c3
-        const SB_URL = https://supabase.com/dashboard/project/uyhtzjhdepkgrxqgjwma
-        const SB_KEY = uyhtzjhdepkgrxqgjwma
+        const AGORA_APP_ID =" 5920000068ae49eea6e5a4fb5675d8c3";
+        const SB_URL =" https://supabase.com/dashboard/project/uyhtzjhdepkgrxqgjwma";
+        const SB_KEY =" uyhtzjhdepkgrxqgjwma";
 
         const supabase = libSupabase.createClient(SB_URL, SB_KEY);
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
@@ -87,6 +87,7 @@
         }
 
         // --- 3. MULTI-USER VIDEO LOGIC ---
+        <script>
         async function startCall() {
             await client.join(AGORA_APP_ID, "global-room", null, null);
             localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
@@ -132,7 +133,7 @@
                 msgBox.scrollTop = msgBox.scrollHeight;
             }).subscribe();
         }
-
+    
         async function sendMsg() {
             const content = document.getElementById('msg-input').value;
             if (!content) return;
@@ -218,3 +219,4 @@ async function loadGallery() {
         listContainer.appendChild(card);
     });
 }
+</script>
