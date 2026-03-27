@@ -142,3 +142,24 @@
     </script>
 </body>
 </html>
+<button id="record-btn" style="background: #f59e0b;" onclick="toggleRecording()">Start Recording</button>
+javascript
+let isRecording = false;
+
+async function toggleRecording() {
+    const btn = document.getElementById('record-btn');
+    
+    if (!isRecording) {
+        // This sends a signal to your backend to tell Agora to start
+        console.log("Recording Started...");
+        btn.innerText = "Stop Recording";
+        btn.style.background = "#ef4444";
+        isRecording = true;
+        // Logic: Call your server-side API here to trigger Agora Cloud Record
+    } else {
+        console.log("Recording Stopped. Saving to Cloud...");
+        btn.innerText = "Start Recording";
+        btn.style.background = "#f59e0b";
+        isRecording = false;
+    }
+}
