@@ -56,12 +56,11 @@
         </div>
     </div>
 
-     <script>
         // --- 1. FILL THESE KEYS CAREFULLY ---
         const AGORA_APP_ID =" 5920000068ae49eea6e5a4fb5675d8c3";
         const SB_URL =" https://supabase.com/dashboard/project/uyhtzjhdepkgrxqgjwma";
         const SB_KEY =" uyhtzjhdepkgrxqgjwma";
-
+     <script>
         const supabase = libSupabase.createClient(SB_URL, SB_KEY);
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         let localTracks = { video: null, audio: null };
@@ -138,8 +137,7 @@
             if (!content) return;
             await supabase.from('messages').insert([{ content, username: currentUsername }]);
             document.getElementById('msg-input').value = '';
-        }
-    </script>
+        }</script>
 </body>
 </html>
 <button id="record-btn" style="background: #f59e0b;" onclick="toggleRecording()">Start Recording</button>
@@ -217,5 +215,4 @@ async function loadGallery() {
         `;
         listContainer.appendChild(card);
     });
-}
-</script>
+}</script>
