@@ -163,3 +163,58 @@ async function toggleRecording() {
         isRecording = false;
     }
 }
+async function uploadRecording(blob) {
+    const fileName = `call_${Date.now()}.webm`;
+    
+    // This sends the video file directly to your Supabase Bucket
+    const { data, error } = await supabase.storage
+        .from('recordings')
+        .upload(fileName, blob);
+
+    if (error) {
+        console.error("Upload failed:", error.message);
+    } else {
+        alert("Recording saved successfully to worldconnect!");
+        console.log("File saved at:", data.path);
+    }
+}
+<!-- GALLERY SECTION -->
+<div id="gallery-section" style="margin-top: 30px; border-top: 1px solid var(--glass); padding-top: 20px;">
+    <h3>Your Recorded Sessions 🎥</h3>
+    <button onclick="loadGallery()" style="background: #10b981; margin-bottom: 15px;">Refresh Gallery</button>
+    <div id="video-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+        <!-- Videos will appear here automatically -->
+    </div>
+</div>
+async function loadGallery() {
+    const listContainer = document.getElementById('video-list');
+    listContainer.innerHTML = "Loading your memories...";
+
+    // 1. Get the list of files from your 'recordings' bucket
+    const { data, error } = await supabase.storage.from('recordings').list();
+
+    if (error) {
+        alert("Could not load gallery: " + error.message);
+        return;
+    }
+
+    listContainer.innerHTML = ""; // Clear the loading message
+
+    data.forEach(file => {
+        // 2. Get a public URL for each video file
+        const { data: urlData } = supabase.storage.from('recordings').getPublicUrl(file.name);
+        
+        // 3. Create a small "Preview" card for the video
+        const card = document.createElement('div');
+        card.style.background = "rgba(255,255,255,0.1)";
+        card.style.padding = "10px";
+        card.style.borderRadius = "10px";
+        
+        card.innerHTML = `
+            <video src="${urlData.publicUrl}" controls style="width: 100%; border-radius: 5px;"></video>
+            <p style="font-size: 0.8rem; margin-top: 5px;">${file.name}</p>
+            <a href="${urlData.publicUrl}" download style="color: var(--primary); font-size: 0.7rem;">Download</a>
+        `;
+        listContainer.appendChild(card);
+    });
+}
