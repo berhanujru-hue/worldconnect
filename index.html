@@ -5,179 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>worldconnect AI 🌍</title>
     
-    <!-- LIBRARIES -->
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <style>
-        :root { --wa-green: #128C7E; --bg: #f0f2f5; --white: #ffffff; --gold: #FFD700; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, sans-serif; background: #f0f2f5; overflow: hidden; }
+        :root { --wa-green: #128C7E; --bg: #f0f2f5; --white: #ffffff; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, sans-serif; background: #f0f2f5; }
 
-        /* MOBILE CONTAINER (This fixes the "Wide Button" issue) */
-        .mobile-wrapper { 
-            max-width: 450px; 
+        .app-shell { 
+            max-width: 420px; 
             margin: 0 auto; 
             height: 100vh; 
             background: var(--white); 
             display: flex; 
             flex-direction: column; 
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         }
 
-        /* LOGIN SCREEN DESIGN */
-        #auth-screen { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 30px;
-            text-align: center;
-            height: 100%;
-        }
+        #auth-page { padding: 40px 25px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%; }
+        .world-icon { font-size: 70px; margin-bottom: 10px; }
+        h1 { color: var(--wa-green); margin: 0; font-size: 28px; letter-spacing: -1px; }
+        .tagline { color: #888; font-size: 13px; margin-bottom: 35px; }
 
-        .world-logo { 
-            font-size: 70px; 
-            margin-bottom: 10px;
-            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
-        }
-
-        .brand-name { font-size: 28px; font-weight: bold; color: var(--wa-green); margin: 0; }
-        .brand-sub { font-size: 13px; color: #888; margin-bottom: 30px; }
-
-        .input-group { width: 100%; margin-bottom: 15px; }
-        input { 
+        /* THE SMART INPUT */
+        .input-box { 
             width: 100%; 
-            padding: 15px; 
-            margin: 5px 0; 
+            padding: 16px; 
+            margin-bottom: 12px; 
+            border: 1.5px solid #eee; 
             border-radius: 12px; 
-            border: 1px solid #ddd; 
             font-size: 16px; 
-            box-sizing: border-box; 
+            box-sizing: border-box;
             outline: none;
             background: #fafafa;
         }
 
-        .btn-launch { 
-            width: 100%; 
-            padding: 16px; 
-            background: var(--wa-green); 
-            color: white; 
-            border: none; 
-            border-radius: 15px; 
-            font-size: 18px; 
-            font-weight: bold; 
-            cursor: pointer; 
-            margin-top: 10px;
-            box-shadow: 0 4px 10px rgba(18, 140, 126, 0.3);
-        }
+        /* BUTTON GROUP */
+        .btn-row { display: flex; gap: 10px; margin-top: 10px; }
+        .btn { flex: 1; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn-login { background: var(--wa-green); color: white; }
+        .btn-signup { background: #e8f5e9; color: var(--wa-green); border: 1px solid var(--wa-green); }
 
-        .auth-toggle { font-size: 14px; color: #666; margin-top: 20px; cursor: pointer; }
-        .auth-toggle b { color: var(--wa-green); }
-
-        /* APP HEADER */
-        .header { background: var(--wa-green); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        
-        /* HIDDEN BY DEFAULT */
-        #main-app { display: none; flex-direction: column; height: 100%; }
-
-        /* FOOTER */
-        .footer { border-top: 1px solid #eee; display: flex; padding: 15px 0 30px 0; justify-content: space-around; font-size: 12px; color: #666; }
+        #main-app { display: none; height: 100%; flex-direction: column; text-align: center; justify-content: center; }
     </style>
 </head>
 <body>
 
-    <div class="mobile-wrapper">
+    <div class="app-shell">
         
-        <!-- LOGIN SECTION -->
-        <div id="auth-screen">
-            <div class="world-logo">🌍</div>
-            <h1 class="brand-name">worldconnect</h1>
-            <p class="brand-sub">Universal AI & Video Super-App</p>
+        <!-- AUTH SECTION -->
+        <div id="auth-page">
+            <div class="world-icon">🌍</div>
+            <h1>worldconnect</h1>
+            <p class="tagline">Universal AI & Video Super-App</p>
 
-            <div class="input-group">
-                <input type="text" id="phone" placeholder="Phone Number (e.g. +251...)">
-                <input type="email" id="email" placeholder="Email Address">
-                <input type="password" id="pass" placeholder="Password">
+            <input type="text" id="user-id" class="input-box" placeholder="Email or Phone Number">
+            <input type="password" id="user-pass" class="input-box" placeholder="Password">
+            
+            <div class="btn-row">
+                <button class="btn btn-login" onclick="handleAuth('login')">Login</button>
+                <button class="btn btn-signup" onclick="handleAuth('signup')">Sign Up</button>
             </div>
-
-            <button class="btn-launch" onclick="handleAuth()" id="btn-text">Launch Experience</button>
             
-            <p class="auth-toggle" onclick="toggleAuth()" id="toggle-msg">
-                New to worldconnect? <b>Create Account</b>
-            </p>
-            
-            <p onclick="ownerPortal()" style="font-size:10px; color:#ccc; margin-top:30px; cursor:pointer;">Founder Portal</p>
+            <p onclick="founderEntry()" style="font-size:10px; color:#eee; margin-top:50px; cursor:pointer;">Founder Portal</p>
         </div>
 
-        <!-- MAIN APP SECTION -->
+        <!-- MAIN APP (Placeholder for testing) -->
         <div id="main-app">
-            <div class="header">
-                <b style="font-size:20px;">worldconnect</b>
-                <span id="owner-badge" style="background:var(--gold); color:black; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:bold; display:none;">FOUNDER</span>
-            </div>
-            
-            <div style="flex:1; padding:20px; text-align:center;">
-                <h3 id="welcome-msg">Welcome Back!</h3>
-                <p>AI Translation is active and ready.</p>
-                <!-- Rest of your chat/call code goes here -->
-            </div>
-
-            <div class="footer">
-                <span>Status: Online ●</span>
-                <span onclick="alert('Settings Opening...')">Settings ⚙️</span>
-            </div>
+            <h2 style="color:var(--wa-green)">Success!</h2>
+            <p>Welcome to worldconnect AI.</p>
+            <button class="btn btn-login" style="width:150px; margin: 0 auto;" onclick="location.reload()">Logout</button>
         </div>
 
     </div>
 
     <script>
-        // --- YOUR KEYS GO HERE ---
+        // --- PUT YOUR KEYS HERE ---
         const AGORA_ID = "eeeb1a064e584642bbb7b1f9040689c3"; 
         const SB_URL = "https://uyhtzjhdepkgrxqgjwma.supabase.co";    
         const SB_KEY = "uyhtzjhdepkgrxqgjwma";    
 
         const supabase = libSupabase.createClient(SB_URL, SB_KEY);
-        let isSignUp = false;
 
-        function toggleAuth() {
-            isSignUp = !isSignUp;
-            document.getElementById('btn-text').innerText = isSignUp ? "Create Account" : "Launch Experience";
-            document.getElementById('toggle-msg').innerHTML = isSignUp ? 
-                "Already have an account? <b>Login</b>" : "New to worldconnect? <b>Create Account</b>";
-        }
+        async function handleAuth(type) {
+            const id = document.getElementById('user-id').value;
+            const pass = document.getElementById('user-pass').value;
 
-        async function handleAuth() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            const ph = document.getElementById('phone').value;
+            if(!id || !pass) return alert("Please fill in the details");
 
-            if(!e || !p) return alert("Please fill in your credentials");
+            // AI Logic: Detect if the user typed an email or phone
+            const isEmail = id.includes('@');
+            const credentials = isEmail ? { email: id, password: pass } : { phone: id, password: pass };
 
-            if(isSignUp) {
-                const { error } = await supabase.auth.signUp({ email: e, password: p, options: { data: { phone: ph } } });
-                if(error) alert(error.message); else enterApp();
+            if(type === 'signup') {
+                const { error } = await supabase.auth.signUp(credentials);
+                if(error) alert(error.message); else enter();
             } else {
-                const { error } = await supabase.auth.signInWithPassword({ email: e, password: p });
-                if(error) alert(error.message); else enterApp();
+                const { error } = await supabase.auth.signInWithPassword(credentials);
+                if(error) alert(error.message); else enter();
             }
         }
 
-        function ownerPortal() {
-            if(prompt("Founder Code:") === "OWNER123") {
-                document.getElementById('owner-badge').style.display = "block";
-                enterApp();
-            }
+        function founderEntry() {
+            if(prompt("Founder Code:") === "OWNER123") enter();
         }
 
-        function enterApp() {
-            document.getElementById('auth-screen').style.display = "none";
-            document.getElementById('main-app').style.display = "flex";
-        }
-
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
+        function enter() {
+            document.getElementById('auth-page').style.display = 'none';
+            document.getElementById('main-app').style.display = 'flex';
         }
     </script>
 </body>
