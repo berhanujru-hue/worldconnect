@@ -2,105 +2,191 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>worldconnect</title>
-    <!-- 1. LIBRARIES (The tools the app needs) -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>worldconnect | Global 🌍</title>
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-        :root { --primary: #6366f1; --glass: rgba(255, 255, 255, 0.1); }
-        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
-        .card { background: var(--glass); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; border: 1px solid rgba(255,255,255,0.1); }
-        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: rgba(0,0,0,0.2); color: white; box-sizing: border-box; }
-        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        #video-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
-        .video-p { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px; }
-        .gallery { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        :root { --wa-green: #128C7E; --bg: #f0f2f5; --white: #ffffff; --admin: #d32f2f; }
+        body { background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        /* UI COMPONENTS */
+        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--white); z-index: 1000; position: fixed; width: 100%; text-align: center; }
+        .header { background: var(--wa-green); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .tab-bar { background: var(--wa-green); display: flex; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 14px; }
+        .tab { flex: 1; text-align: center; padding: 15px 0; cursor: pointer; border-bottom: 4px solid transparent; }
+        .tab.active { color: white; border-bottom: 4px solid white; }
+
+        /* VIDEO AREA */
+        #video-container { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 15px; margin-top: 15px; display: none; overflow: hidden; position: relative; }
+        #local-player { width: 100%; height: 100%; position: absolute; }
+        .call-controls { display: none; gap: 10px; margin-top: 10px; justify-content: center; }
+        
+        /* CHAT & BUTTONS */
+        .content { flex: 1; overflow-y: auto; padding: 15px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .btn { padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; width: 85%; max-width: 320px; }
+        .btn-call { background: var(--wa-green); color: white; }
+        .btn-hangup { background: var(--admin); color: white; width: 120px; }
+
+        /* FOOTER */
+        .footer { background: white; border-top: 1px solid #eee; display: flex; padding: 12px 0 30px 0; justify-content: space-around; font-size: 12px; color: #666; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 2000; align-items: flex-end; }
+        .modal-content { background: white; width: 100%; border-radius: 20px 20px 0 0; padding: 25px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1 style="margin-bottom: 5px;">worldconnect 🌍</h1>
-        <p style="opacity: 0.7; margin-bottom: 20px;">Global Communication Platform</p>
+    <!-- AUTH SECTION -->
+    <div id="auth-screen">
+        <h1 style="color:var(--wa-green)">worldconnect</h1>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="pass" placeholder="Password">
+        <button class="btn btn-call" onclick="login()">Login / Sign Up</button>
+        <p onclick="adminMode()" style="font-size:12px; color:#999; margin-top:10px;">Owner Portal</p>
+    </div>
 
-        <!-- LOGIN AREA -->
-        <div id="auth-ui">
-            <input type="email" id="email" placeholder="Enter Email">
-            <input type="password" id="pass" placeholder="Enter Password">
-            <button onclick="handleAuth('login')">Login</button>
-            <button onclick="handleAuth('signup')" style="background: transparent; border: 1px solid var(--primary);">Create Account</button>
+    <!-- APP SECTION -->
+    <div id="main-app" style="display:none; flex-direction:column; height:100%;">
+        <div class="header">
+            <b id="app-title">worldconnect</b>
+            <span id="owner-badge" style="background:red; padding:2px 5px; border-radius:4px; font-size:10px; display:none;">OWNER</span>
+        </div>
+        <div class="tab-bar">
+            <div class="tab active" id="t-chats" onclick="showPage('chats')">CHATS</div>
+            <div class="tab" id="t-calls" onclick="showPage('calls')">CALLS</div>
         </div>
 
-        <!-- APP AREA (Hidden until login) -->
-        <div id="app-ui" style="display:none;">
-            <div id="video-grid"><div id="local-player" class="video-p"></div></div>
-            <button onclick="startCall()">Start Global Call</button>
-            <button id="record-btn" onclick="toggleRecording()" style="background: #f59e0b;">Start Recording</button>
-            
-            <hr style="margin: 20px 0; opacity: 0.2;">
-            <h3>Your Sessions</h3>
-            <button onclick="loadGallery()" style="background: #10b981;">Refresh Gallery</button>
-            <div id="video-list" class="gallery"></div>
+        <div class="content">
+            <div id="page-chats" class="page active">
+                <div id="chat-list" style="height:300px; background:#ddd; border-radius:10px; overflow-y:auto; padding:10px; margin-bottom:10px;"></div>
+                <input type="text" id="m-in" placeholder="Message..." style="width:70%;">
+                <button onclick="send()" class="btn-call" style="width:20%; padding:10px;">Send</button>
+            </div>
+
+            <div id="page-calls" class="page">
+                <button id="join-btn" class="btn btn-call" onclick="joinCall()">🎥 Start Global Call</button>
+                <div id="video-container">
+                    <div id="local-player"></div>
+                </div>
+                <div class="call-controls" id="controls">
+                    <button class="btn btn-hangup" onclick="leaveCall()">🔴 Hang Up</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <span onclick="alert('Connected')">Status</span>
+            <span onclick="openSet()" id="set-btn">Settings ⚙️</span>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="set-modal" class="modal" onclick="closeSet()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3>Language / ቋንቋ</h3>
+            <select onchange="setLang(this.value)" style="width:100%; padding:10px; border-radius:8px;">
+                <option value="en">English</option>
+                <option value="am">Amharic (አማርኛ)</option>
+                <option value="es">Español</option>
+            </select>
+            <button class="btn" style="background:#eee; margin-top:15px;" onclick="closeSet()">Close</button>
         </div>
     </div>
 
     <script>
-        // --- 2. CONFIGURATION (Your Private Keys) ---
-        const AGORA_APP_ID = "eeeb1a064e584642bbb7b1f9040689c3"; 
-        const SB_URL = "https://supabase.com/dashboard/project/uyhtzjhdepkgrxqgjwma/settings/general";
-        const SB_KEY = "uyhtzjhdepkgrxqgjwma"; // 
+        // --- CONFIG ---
+        const APP_ID = "eeeb1a064e584642bbb7b1f9040689c3"; // Get from agora.io
+        const SB_URL = "https://uyhtzjhdepkgrxqgjwma.supabase.co";
+        const SB_KEY = "uyhtzjhdepkgrxqgjwma";
 
         const supabase = libSupabase.createClient(SB_URL, SB_KEY);
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-        let localTracks = { video: null, audio: null };
-        let isRecording = false;
+        let localTracks = { videoTrack: null, audioTrack: null };
 
-        // --- 3. LOGIC (The Brain) ---
+        // --- AUTH & ADMIN ---
+        async function login() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            const { error } = await supabase.auth.signInWithPassword({ email:e, password:p });
+            if(error) await supabase.auth.signUp({ email:e, password:p });
+            enter();
+        }
+        function adminMode() { if(prompt("Owner Code:") === "OWNER123") { document.getElementById('owner-badge').style.display="block"; enter(); } }
+        function enter() { document.getElementById('auth-screen').style.display="none"; document.getElementById('main-app').style.display="flex"; }
 
-        async function handleAuth(type) {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('pass').value;
-            const { data, error } = type === 'login' 
-                ? await supabase.auth.signInWithPassword({ email, password })
-                : await supabase.auth.signUp({ email, password });
-            
-            if (error) alert(error.message);
-            else {
-                document.getElementById('auth-ui').style.display = 'none';
-                document.getElementById('app-ui').style.display = 'block';
+        // --- VIDEO CALL END-TO-END SCRIPT ---
+        async function joinCall() {
+            try {
+                // 1. Join the Channel
+                await client.join(APP_ID, "global-room", null, null);
+                
+                // 2. Create and Play Audio/Video
+                localTracks.audioTrack = await AgoraRTC.createMicrophoneAudioTrack();
+                localTracks.videoTrack = await AgoraRTC.createCameraVideoTrack();
+                
+                document.getElementById('video-container').style.display = "block";
+                document.getElementById('join-btn').style.display = "none";
+                document.getElementById('controls').style.display = "flex";
+                
+                localTracks.videoTrack.play("local-player");
+                
+                // 3. Publish to the World
+                await client.publish([localTracks.audioTrack, localTracks.videoTrack]);
+                console.log("Joined & Published!");
+            } catch (err) {
+                console.error(err);
+                alert("Please allow camera access!");
             }
         }
 
-        async function startCall() {
-            await client.join(AGORA_APP_ID, "global-room", null, null);
-            localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
-            localTracks.video = await AgoraRTC.createCameraVideoTrack();
-            localTracks.video.play("local-player");
-            await client.publish([localTracks.audio, localTracks.video]);
+        async function leaveCall() {
+            // 1. Stop Camera and Mic
+            for (let trackName in localTracks) {
+                let track = localTracks[trackName];
+                if (track) {
+                    track.stop();
+                    track.close();
+                    localTracks[trackName] = null;
+                }
+            }
+            // 2. Leave the Channel
+            await client.leave();
+            
+            // 3. Reset UI
+            document.getElementById('video-container').style.display = "none";
+            document.getElementById('join-btn').style.display = "block";
+            document.getElementById('controls').style.display = "none";
+            console.log("Left Call & Cleaned Up!");
         }
 
-        function toggleRecording() {
-            const btn = document.getElementById('record-btn');
-            isRecording = !isRecording;
-            btn.innerText = isRecording ? "Stop Recording" : "Start Recording";
-            btn.style.background = isRecording ? "#ef4444" : "#f59e0b";
-            if(!isRecording) alert("Recording saved to your Gallery!");
+        // --- UTILS ---
+        function showPage(id) {
+            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+            document.getElementById('page-'+id).classList.add('active');
+            document.getElementById('t-'+id).classList.add('active');
         }
-
-        async function loadGallery() {
-            const list = document.getElementById('video-list');
-            list.innerHTML = "Checking cloud...";
-            const { data, error } = await supabase.storage.from('recordings').list();
-            if (error) return alert("Storage not ready yet!");
-            list.innerHTML = "";
-            data.forEach(file => {
-                const { data: url } = supabase.storage.from('recordings').getPublicUrl(file.name);
-                const item = document.createElement('div');
-                item.innerHTML = `<video src="${url.publicUrl}" controls style="width:100%; border-radius:5px;"></video>`;
-                list.appendChild(item);
-            });
+        function openSet() { document.getElementById('set-modal').style.display="flex"; }
+        function closeSet() { document.getElementById('set-modal').style.display="none"; }
+        
+        const langs = {
+            en: { chat: "CHATS", call: "CALLS", head: "worldconnect" },
+            am: { chat: "ውይይቶች", call: "ጥሪዎች", head: "ወርልድ ኮኔክት" },
+            es: { chat: "CHATS", call: "LLAMADAS", head: "Mundo" }
+        };
+        function setLang(l) {
+            document.getElementById('t-chats').innerText = langs[l].chat;
+            document.getElementById('t-calls').innerText = langs[l].call;
+            document.getElementById('app-title').innerText = langs[l].head;
+            closeSet();
+        }
+        function send() {
+            const val = document.getElementById('m-in').value;
+            if(!val) return;
+            document.getElementById('chat-list').innerHTML += `<div><b>Me:</b> ${val}</div>`;
+            document.getElementById('m-in').value = "";
         }
     </script>
 </body>
