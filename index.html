@@ -3,212 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>worldconnect Ultra AI 🌍</title>
+    <title>worldconnect AI 🌍</title>
     
     <!-- LIBRARIES -->
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
-    <!-- GOOGLE AI TRANSLATION -->
-    <script type="text/javascript">
-        function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'en', layout: google.translate.TranslateElement.InlineLayout.SIMPLE}, 'google_translate_element');
-        }
-    </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
     <style>
-        :root { --primary: #128C7E; --bg: #f0f2f5; --white: #ffffff; --accent: #007bff; --gold: #FFD700; --danger: #d32f2f; }
-        body { background: var(--bg); font-family: -apple-system, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        :root { --wa-green: #128C7E; --bg: #f0f2f5; --white: #ffffff; --gold: #FFD700; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, sans-serif; background: #f0f2f5; overflow: hidden; }
+
+        /* MOBILE CONTAINER (This fixes the "Wide Button" issue) */
+        .mobile-wrapper { 
+            max-width: 450px; 
+            margin: 0 auto; 
+            height: 100vh; 
+            background: var(--white); 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* LOGIN SCREEN DESIGN */
+        #auth-screen { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            padding: 30px;
+            text-align: center;
+            height: 100%;
+        }
+
+        .world-logo { 
+            font-size: 70px; 
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+        }
+
+        .brand-name { font-size: 28px; font-weight: bold; color: var(--wa-green); margin: 0; }
+        .brand-sub { font-size: 13px; color: #888; margin-bottom: 30px; }
+
+        .input-group { width: 100%; margin-bottom: 15px; }
+        input { 
+            width: 100%; 
+            padding: 15px; 
+            margin: 5px 0; 
+            border-radius: 12px; 
+            border: 1px solid #ddd; 
+            font-size: 16px; 
+            box-sizing: border-box; 
+            outline: none;
+            background: #fafafa;
+        }
+
+        .btn-launch { 
+            width: 100%; 
+            padding: 16px; 
+            background: var(--wa-green); 
+            color: white; 
+            border: none; 
+            border-radius: 15px; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(18, 140, 126, 0.3);
+        }
+
+        .auth-toggle { font-size: 14px; color: #666; margin-top: 20px; cursor: pointer; }
+        .auth-toggle b { color: var(--wa-green); }
+
+        /* APP HEADER */
+        .header { background: var(--wa-green); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
         
-        /* AUTH PAGE */
-        #auth-screen { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: var(--white); z-index: 2000; position: fixed; width: 100%; text-align: center; }
-        .logo-ring { width: 100px; height: 100px; border: 4px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 40px; font-weight: bold; color: var(--primary); margin-bottom: 20px; box-shadow: 0 10px 20px rgba(18,140,126,0.2); }
-        input { width: 80%; max-width: 320px; padding: 15px; margin: 10px 0; border-radius: 15px; border: 1px solid #ddd; font-size: 16px; outline: none; }
-        
-        /* NAVIGATION */
-        .header { background: var(--primary); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .nav-tabs { background: var(--primary); display: flex; color: rgba(255,255,255,0.7); font-weight: bold; font-size: 12px; }
-        .tab { flex: 1; text-align: center; padding: 15px 0; cursor: pointer; border-bottom: 4px solid transparent; transition: 0.3s; }
-        .tab.active { color: white; border-bottom: 4px solid white; }
+        /* HIDDEN BY DEFAULT */
+        #main-app { display: none; flex-direction: column; height: 100%; }
 
-        /* CONTENT PAGES */
-        .content { flex: 1; overflow-y: auto; padding: 15px; position: relative; }
-        .page { display: none; height: 100%; }
-        .page.active { display: flex; flex-direction: column; }
-
-        /* ADVANCED CHAT */
-        #chat-feed { flex: 1; background: #e5ddd5; border-radius: 20px; overflow-y: auto; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; border: 1px solid #ccc; }
-        .bubble { padding: 12px; border-radius: 15px; margin-bottom: 10px; max-width: 85%; font-size: 14px; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-        .sent { background: #dcf8c6; align-self: flex-end; }
-        .received { background: white; align-self: flex-start; }
-        .media-preview { max-width: 100%; border-radius: 10px; margin-top: 5px; cursor: pointer; }
-
-        /* VIDEO ROOM */
-        #video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 10px; }
-        .video-box { aspect-ratio: 1; background: #000; border-radius: 15px; overflow: hidden; border: 2px solid var(--gold); position: relative; }
-
-        /* BUTTONS */
-        .btn { padding: 15px; border-radius: 15px; border: none; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .btn-main { background: var(--primary); color: white; width: 100%; }
-        .btn-action { background: var(--accent); color: white; border-radius: 50%; width: 50px; height: 50px; }
-        .btn-hangup { background: var(--danger); color: white; width: 100%; margin-top: 10px; }
-
-        /* MODAL */
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; align-items: flex-end; }
-        .modal-ui { background: white; width: 100%; border-radius: 30px 30px 0 0; padding: 30px; }
+        /* FOOTER */
+        .footer { border-top: 1px solid #eee; display: flex; padding: 15px 0 30px 0; justify-content: space-around; font-size: 12px; color: #666; }
     </style>
 </head>
 <body>
 
-    <!-- SECTION: AUTH -->
-    <div id="auth-screen">
-        <div class="logo-ring">wc</div>
-        <h1 style="margin:0; color:var(--primary);">worldconnect Ultra</h1>
-        <p style="color:#666;">Universal AI & Video Super-App</p>
-        <input type="email" id="email" placeholder="Email Address">
-        <input type="password" id="pass" placeholder="Password">
-        <button class="btn btn-main" style="width:85%" onclick="auth()">Launch Experience</button>
-        <p onclick="adminAccess()" style="font-size:11px; color:#bbb; margin-top:15px; cursor:pointer;">Founder Portal</p>
-    </div>
-
-    <!-- SECTION: MAIN -->
-    <div id="main-app" style="display:none; flex-direction:column; height:100%;">
-        <div class="header">
-            <b style="font-size:20px;">worldconnect</b>
-            <span id="owner-tag" style="background:var(--gold); color:black; padding:4px 10px; border-radius:8px; font-size:10px; font-weight:bold; display:none;">✨ FOUNDER AI</span>
-        </div>
+    <div class="mobile-wrapper">
         
-        <div class="nav-tabs">
-            <div class="tab active" id="t-chat" onclick="tab('chat')">CHAT</div>
-            <div class="tab" id="t-group" onclick="tab('group')">GROUP ROOM</div>
-            <div class="tab" id="t-voice" onclick="tab('voice')">AI VOICE</div>
-        </div>
+        <!-- LOGIN SECTION -->
+        <div id="auth-screen">
+            <div class="world-logo">🌍</div>
+            <h1 class="brand-name">worldconnect</h1>
+            <p class="brand-sub">Universal AI & Video Super-App</p>
 
-        <div class="content">
-            <!-- CHAT + MEDIA PAGE -->
-            <div id="page-chat" class="page active">
-                <div id="chat-feed"></div>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <label for="media-up" class="btn" style="background:#eee; padding:10px;">📎</label>
-                    <input type="file" id="media-up" style="display:none;" onchange="sendMedia(this)">
-                    <input type="text" id="m-in" placeholder="Translate anything..." style="flex:1; border-radius:25px; margin:0;">
-                    <button class="btn-action" onclick="sendText()">➤</button>
-                </div>
+            <div class="input-group">
+                <input type="text" id="phone" placeholder="Phone Number (e.g. +251...)">
+                <input type="email" id="email" placeholder="Email Address">
+                <input type="password" id="pass" placeholder="Password">
             </div>
 
-            <!-- GROUP MEETING PAGE -->
-            <div id="page-group" class="page">
-                <button id="j-room" class="btn btn-main" onclick="joinRoom()">🎥 Join Global Meeting</button>
-                <div id="video-grid">
-                    <div id="local-player" class="video-box"></div>
-                </div>
-                <button id="h-room" class="btn btn-hangup" style="display:none;" onclick="leaveRoom()">Leave Meeting</button>
+            <button class="btn-launch" onclick="handleAuth()" id="btn-text">Launch Experience</button>
+            
+            <p class="auth-toggle" onclick="toggleAuth()" id="toggle-msg">
+                New to worldconnect? <b>Create Account</b>
+            </p>
+            
+            <p onclick="ownerPortal()" style="font-size:10px; color:#ccc; margin-top:30px; cursor:pointer;">Founder Portal</p>
+        </div>
+
+        <!-- MAIN APP SECTION -->
+        <div id="main-app">
+            <div class="header">
+                <b style="font-size:20px;">worldconnect</b>
+                <span id="owner-badge" style="background:var(--gold); color:black; padding:3px 8px; border-radius:6px; font-size:11px; font-weight:bold; display:none;">FOUNDER</span>
+            </div>
+            
+            <div style="flex:1; padding:20px; text-align:center;">
+                <h3 id="welcome-msg">Welcome Back!</h3>
+                <p>AI Translation is active and ready.</p>
+                <!-- Rest of your chat/call code goes here -->
             </div>
 
-            <!-- AI VOICE CHAT PAGE -->
-            <div id="page-voice" class="page" style="text-align:center; justify-content:center;">
-                <div style="font-size:80px; margin-bottom:20px;">🎙️</div>
-                <h2>AI Voice Sync</h2>
-                <p>Hold the button to translate your voice into 100 languages.</p>
-                <button class="btn-action" style="width:100px; height:100px; font-size:30px;" onmousedown="voiceStart()" onmouseup="voiceEnd()">🎤</button>
-                <p id="v-status" style="color:var(--primary); font-weight:bold; margin-top:20px;">Waiting for voice...</p>
+            <div class="footer">
+                <span>Status: Online ●</span>
+                <span onclick="alert('Settings Opening...')">Settings ⚙️</span>
             </div>
         </div>
 
-        <div class="footer">
-            <span style="color:var(--primary); font-weight:bold;">● AI Online</span>
-            <span onclick="openSet()">Settings & Language ⚙️</span>
-        </div>
-    </div>
-
-    <!-- SETTINGS MODAL -->
-    <div id="set-modal" class="modal" onclick="closeSet()">
-        <div class="modal-ui" onclick="event.stopPropagation()">
-            <h2 style="margin-top:0;">Global AI Control</h2>
-            <div id="google_translate_element" style="padding:10px; background:#f0f0f0; border-radius:10px;"></div>
-            <hr style="margin:20px 0; opacity:0.1;">
-            <button class="btn btn-main" onclick="closeSet()">Apply AI Changes</button>
-            <p onclick="location.reload()" style="color:red; text-align:center; margin-top:20px; font-weight:bold;">Sign Out</p>
-        </div>
     </div>
 
     <script>
-        // --- KEYS (REPLACE THESE) ---
+        // --- YOUR KEYS GO HERE ---
         const AGORA_ID = "eeeb1a064e584642bbb7b1f9040689c3"; 
         const SB_URL = "https://uyhtzjhdepkgrxqgjwma.supabase.co";    
         const SB_KEY = "uyhtzjhdepkgrxqgjwma";    
 
         const supabase = libSupabase.createClient(SB_URL, SB_KEY);
-        let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
-        let userTracks = { v: null, a: null };
+        let isSignUp = false;
 
-        async function auth() {
-            const e = document.getElementById('email').value;
-            const p = document.getElementById('pass').value;
-            if(!e || !p) return alert("Missing info");
-            const { error } = await supabase.auth.signInWithPassword({ email:e, password:p });
-            if(error) await supabase.auth.signUp({ email:e, password:p });
-            launch();
+        function toggleAuth() {
+            isSignUp = !isSignUp;
+            document.getElementById('btn-text').innerText = isSignUp ? "Create Account" : "Launch Experience";
+            document.getElementById('toggle-msg').innerHTML = isSignUp ? 
+                "Already have an account? <b>Login</b>" : "New to worldconnect? <b>Create Account</b>";
         }
 
-        function adminAccess() { if(prompt("Code:") === "OWNER123") { document.getElementById('owner-tag').style.display="block"; launch(); } }
-        function launch() { document.getElementById('auth-screen').style.display="none"; document.getElementById('main-app').style.display="flex"; }
+        async function handleAuth() {
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('pass').value;
+            const ph = document.getElementById('phone').value;
 
-        // ADVANCED MEDIA SHARING
-        function sendMedia(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    const feed = document.getElementById('chat-feed');
-                    feed.innerHTML += `<div class="bubble sent"><b>Me</b><img src="${e.target.result}" class="media-preview"><span style="display:block; font-size:9px; color:blue;">✨ AI Scanned Media</span></div>`;
-                    feed.scrollTop = feed.scrollHeight;
-                };
-                reader.readAsDataURL(input.files[0]);
+            if(!e || !p) return alert("Please fill in your credentials");
+
+            if(isSignUp) {
+                const { error } = await supabase.auth.signUp({ email: e, password: p, options: { data: { phone: ph } } });
+                if(error) alert(error.message); else enterApp();
+            } else {
+                const { error } = await supabase.auth.signInWithPassword({ email: e, password: p });
+                if(error) alert(error.message); else enterApp();
             }
         }
 
-        function sendText() {
-            const inp = document.getElementById('m-in');
-            const feed = document.getElementById('chat-feed');
-            if(!inp.value) return;
-            feed.innerHTML += `<div class="bubble sent"><b>Me</b> ${inp.value}<span style="display:block; font-size:9px; color:blue;">✨ AI Synced</span></div>`;
-            inp.value = ""; feed.scrollTop = feed.scrollHeight;
+        function ownerPortal() {
+            if(prompt("Founder Code:") === "OWNER123") {
+                document.getElementById('owner-badge').style.display = "block";
+                enterApp();
+            }
         }
 
-        // GROUP VIDEO CALLING
-        async function joinRoom() {
-            try {
-                await client.join(AGORA_ID, "world-meeting", null, null);
-                userTracks.a = await AgoraRTC.createMicrophoneAudioTrack();
-                userTracks.v = await AgoraRTC.createCameraVideoTrack();
-                document.getElementById('j-room').style.display = "none";
-                document.getElementById('h-room').style.display = "block";
-                userTracks.v.play("local-player");
-                await client.publish([userTracks.a, userTracks.v]);
-            } catch (err) { alert("Enable camera/mic!"); }
+        function enterApp() {
+            document.getElementById('auth-screen').style.display = "none";
+            document.getElementById('main-app').style.display = "flex";
         }
 
-        async function leaveRoom() {
-            for (let k in userTracks) { if (userTracks[k]) { userTracks[k].stop(); userTracks[k].close(); userTracks[k] = null; } }
-            await client.leave();
-            document.getElementById('j-room').style.display = "block";
-            document.getElementById('h-room').style.display = "none";
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({pageLanguage: 'en'}, 'google_translate_element');
         }
-
-        // VOICE CHAT SIMULATION
-        function voiceStart() { document.getElementById('v-status').innerText = "🔴 Listening & Translating..."; }
-        function voiceEnd() { document.getElementById('v-status').innerText = "✅ Voice Sent (AI Translated)"; setTimeout(()=> document.getElementById('v-status').innerText = "Waiting for voice...", 2000); }
-
-        function tab(id) {
-            document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-            document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-            document.getElementById('page-'+id).classList.add('active');
-            document.getElementById('t-'+id).classList.add('active');
-        }
-
-        function openSet() { document.getElementById('set-modal').style.display="flex"; }
-        function closeSet() { document.getElementById('set-modal').style.display="none"; }
     </script>
 </body>
 </html>
