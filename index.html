@@ -140,6 +140,7 @@
         }</script>
 </body>
 </html>
+html
 <button id="record-btn" style="background: #f59e0b;" onclick="toggleRecording()">Start Recording</button>
 javascript
 let isRecording = false;
@@ -161,6 +162,7 @@ async function toggleRecording() {
         isRecording = false;
     }
 }
+javascript
 async function uploadRecording(blob) {
     const fileName = `call_${Date.now()}.webm`;
     
@@ -176,6 +178,7 @@ async function uploadRecording(blob) {
         console.log("File saved at:", data.path);
     }
 }
+html
 <!-- GALLERY SECTION -->
 <div id="gallery-section" style="margin-top: 30px; border-top: 1px solid var(--glass); padding-top: 20px;">
     <h3>Your Recorded Sessions 🎥</h3>
@@ -184,6 +187,7 @@ async function uploadRecording(blob) {
         <!-- Videos will appear here automatically -->
     </div>
 </div>
+javascript
 async function loadGallery() {
     const listContainer = document.getElementById('video-list');
     listContainer.innerHTML = "Loading your memories...";
