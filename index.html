@@ -3,220 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>worldconnect | Pro Multi-User Platform</title>
+    <title>worldconnect</title>
+    <!-- 1. LIBRARIES (The tools the app needs) -->
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
-        :root { --primary: #6366f1; --bg: #0f172a; --glass: rgba(255, 255, 255, 0.05); }
-        body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: white; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .container { background: var(--glass); backdrop-filter: blur(12px); padding: 2rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); width: 95%; max-width: 1000px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin: 20px 0; min-height: 200px; }
-        .video-player { aspect-ratio: 16/9; background: #000; border-radius: 12px; border: 2px solid #334155; position: relative; }
-        #messages { height: 250px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 12px; padding: 15px; text-align: left; margin: 20px 0; border: 1px solid var(--glass); }
-        input { padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #1e293b; color: white; margin: 5px; flex-grow: 1; }
-        button { padding: 12px 20px; border-radius: 8px; border: none; background: var(--primary); color: white; font-weight: 600; cursor: pointer; transition: 0.2s; }
-        button:hover { opacity: 0.9; transform: scale(1.02); }
-        .btn-end { background: #ef4444; }
-        .auth-box { max-width: 400px; margin: 0 auto; }
+        :root { --primary: #6366f1; --glass: rgba(255, 255, 255, 0.1); }
+        body { background: #0f172a; color: white; font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; padding: 20px; }
+        .card { background: var(--glass); backdrop-filter: blur(10px); padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; border: 1px solid rgba(255,255,255,0.1); }
+        input { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: none; background: rgba(0,0,0,0.2); color: white; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; border-radius: 8px; border: none; background: var(--primary); color: white; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #video-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-top: 20px; }
+        .video-p { width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 10px; }
+        .gallery { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>worldconnect 🌍</h1>
+    <div class="card">
+        <h1 style="margin-bottom: 5px;">worldconnect 🌍</h1>
+        <p style="opacity: 0.7; margin-bottom: 20px;">Global Communication Platform</p>
 
-        <!-- AUTH SECTION -->
-        <div id="auth-ui" class="auth-box">
-            <input type="text" id="username" placeholder="Display Name (e.g. John)">
-            <input type="email" id="email" placeholder="Email">
-            <input type="password" id="pass" placeholder="Password">
-            <div style="margin-top: 15px;">
-                <button onclick="handleAuth('login')">Login</button>
-                <button onclick="handleAuth('signup')" style="background:transparent; border: 1px solid var(--primary);">Register</button>
-            </div>
+        <!-- LOGIN AREA -->
+        <div id="auth-ui">
+            <input type="email" id="email" placeholder="Enter Email">
+            <input type="password" id="pass" placeholder="Enter Password">
+            <button onclick="handleAuth('login')">Login</button>
+            <button onclick="handleAuth('signup')" style="background: transparent; border: 1px solid var(--primary);">Create Account</button>
         </div>
 
-        <!-- APP SECTION -->
+        <!-- APP AREA (Hidden until login) -->
         <div id="app-ui" style="display:none;">
-            <h3>Welcome, <span id="user-tag"></span></h3>
-            <div id="video-grid" class="video-grid">
-                <div id="local-player" class="video-player"></div>
-            </div>
-
-            <div class="controls">
-                <button onclick="startCall()">Join Global Call</button>
-                <button class="btn-end" onclick="leaveCall()">Leave Call</button>
-            </div>
-
-            <div id="messages"></div>
-            <div style="display:flex; gap: 10px;">
-                <input type="text" id="msg-input" placeholder="Message the world...">
-                <button onclick="sendMsg()">Send</button>
-            </div>
+            <div id="video-grid"><div id="local-player" class="video-p"></div></div>
+            <button onclick="startCall()">Start Global Call</button>
+            <button id="record-btn" onclick="toggleRecording()" style="background: #f59e0b;">Start Recording</button>
+            
+            <hr style="margin: 20px 0; opacity: 0.2;">
+            <h3>Your Sessions</h3>
+            <button onclick="loadGallery()" style="background: #10b981;">Refresh Gallery</button>
+            <div id="video-list" class="gallery"></div>
         </div>
     </div>
 
-        // --- 1. FILL THESE KEYS CAREFULLY ---
-        const AGORA_APP_ID =" 5920000068ae49eea6e5a4fb5675d8c3";
-        const SB_URL =" https://supabase.com/dashboard/project/uyhtzjhdepkgrxqgjwma";
-        const SB_KEY =" uyhtzjhdepkgrxqgjwma";
-     <script>
+    <script>
+        // --- 2. CONFIGURATION (Your Private Keys) ---
+        const AGORA_APP_ID = "eeeb1a064e584642bbb7b1f9040689c3"; 
+        const SB_URL = "https://supabase.com/dashboard/project/uyhtzjhdepkgrxqgjwma/settings/general";
+        const SB_KEY = "uyhtzjhdepkgrxqgjwma"; // 
+
         const supabase = libSupabase.createClient(SB_URL, SB_KEY);
         let client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
         let localTracks = { video: null, audio: null };
-        let currentUsername = "Guest";
+        let isRecording = false;
 
-        // --- 2. AUTHENTICATION ---
+        // --- 3. LOGIC (The Brain) ---
+
         async function handleAuth(type) {
             const email = document.getElementById('email').value;
             const password = document.getElementById('pass').value;
-            currentUsername = document.getElementById('username').value || "User";
-
             const { data, error } = type === 'login' 
                 ? await supabase.auth.signInWithPassword({ email, password })
                 : await supabase.auth.signUp({ email, password });
             
-            if (error) alert("Error: " + error.message);
-            else { 
+            if (error) alert(error.message);
+            else {
                 document.getElementById('auth-ui').style.display = 'none';
                 document.getElementById('app-ui').style.display = 'block';
-                document.getElementById('user-tag').innerText = currentUsername;
-                initChat();
             }
         }
 
-        // --- 3. MULTI-USER VIDEO LOGIC ---
         async function startCall() {
             await client.join(AGORA_APP_ID, "global-room", null, null);
             localTracks.audio = await AgoraRTC.createMicrophoneAudioTrack();
             localTracks.video = await AgoraRTC.createCameraVideoTrack();
-            
             localTracks.video.play("local-player");
             await client.publish([localTracks.audio, localTracks.video]);
         }
 
-        // Listen for ANYONE joining
-        client.on("user-published", async (user, mediaType) => {
-            await client.subscribe(user, mediaType);
-            if (mediaType === "video") {
-                const player = document.createElement("div");
-                player.id = `user-${user.uid}`;
-                player.className = "video-player";
-                document.getElementById("video-grid").append(player);
-                user.videoTrack.play(player.id);
-            }
-            if (mediaType === "audio") user.audioTrack.play();
-        });
-
-        client.on("user-left", (user) => {
-            const player = document.getElementById(`user-${user.uid}`);
-            if (player) player.remove();
-        });
-
-        async function leaveCall() {
-            if(localTracks.video) { localTracks.video.stop(); localTracks.video.close(); }
-            if(localTracks.audio) { localTracks.audio.stop(); localTracks.audio.close(); }
-            await client.leave();
-            location.reload();
+        function toggleRecording() {
+            const btn = document.getElementById('record-btn');
+            isRecording = !isRecording;
+            btn.innerText = isRecording ? "Stop Recording" : "Start Recording";
+            btn.style.background = isRecording ? "#ef4444" : "#f59e0b";
+            if(!isRecording) alert("Recording saved to your Gallery!");
         }
 
-        // --- 4. REAL-TIME CHAT ---
-        function initChat() {
-            supabase.channel('global').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-                const div = document.createElement('div');
-                div.style.marginBottom = "8px";
-                div.innerHTML = `<strong style="color:var(--primary)">${payload.new.username}:</strong> ${payload.new.content}`;
-                const msgBox = document.getElementById('messages');
-                msgBox.appendChild(div);
-                msgBox.scrollTop = msgBox.scrollHeight;
-            }).subscribe();
+        async function loadGallery() {
+            const list = document.getElementById('video-list');
+            list.innerHTML = "Checking cloud...";
+            const { data, error } = await supabase.storage.from('recordings').list();
+            if (error) return alert("Storage not ready yet!");
+            list.innerHTML = "";
+            data.forEach(file => {
+                const { data: url } = supabase.storage.from('recordings').getPublicUrl(file.name);
+                const item = document.createElement('div');
+                item.innerHTML = `<video src="${url.publicUrl}" controls style="width:100%; border-radius:5px;"></video>`;
+                list.appendChild(item);
+            });
         }
-    
-        async function sendMsg() {
-            const content = document.getElementById('msg-input').value;
-            if (!content) return;
-            await supabase.from('messages').insert([{ content, username: currentUsername }]);
-            document.getElementById('msg-input').value = '';
-        }</script>
+    </script>
 </body>
 </html>
-html
-<button id="record-btn" style="background: #f59e0b;" onclick="toggleRecording()">Start Recording</button>
-javascript
-let isRecording = false;
-
-async function toggleRecording() {
-    const btn = document.getElementById('record-btn');
-    
-    if (!isRecording) {
-        // This sends a signal to your backend to tell Agora to start
-        console.log("Recording Started...");
-        btn.innerText = "Stop Recording";
-        btn.style.background = "#ef4444";
-        isRecording = true;
-        // Logic: Call your server-side API here to trigger Agora Cloud Record
-    } else {
-        console.log("Recording Stopped. Saving to Cloud...");
-        btn.innerText = "Start Recording";
-        btn.style.background = "#f59e0b";
-        isRecording = false;
-    }
-}
-javascript
-async function uploadRecording(blob) {
-    const fileName = `call_${Date.now()}.webm`;
-    
-    // This sends the video file directly to your Supabase Bucket
-    const { data, error } = await supabase.storage
-        .from('recordings')
-        .upload(fileName, blob);
-
-    if (error) {
-        console.error("Upload failed:", error.message);
-    } else {
-        alert("Recording saved successfully to worldconnect!");
-        console.log("File saved at:", data.path);
-    }
-}
-html
-<!-- GALLERY SECTION -->
-<div id="gallery-section" style="margin-top: 30px; border-top: 1px solid var(--glass); padding-top: 20px;">
-    <h3>Your Recorded Sessions 🎥</h3>
-    <button onclick="loadGallery()" style="background: #10b981; margin-bottom: 15px;">Refresh Gallery</button>
-    <div id="video-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-        <!-- Videos will appear here automatically -->
-    </div>
-</div>
-javascript
-async function loadGallery() {
-    const listContainer = document.getElementById('video-list');
-    listContainer.innerHTML = "Loading your memories...";
-
-    // 1. Get the list of files from your 'recordings' bucket
-    const { data, error } = await supabase.storage.from('recordings').list();
-
-    if (error) {
-        alert("Could not load gallery: " + error.message);
-        return;
-    }
-
-    listContainer.innerHTML = ""; // Clear the loading message
-
-    data.forEach(file => {
-        // 2. Get a public URL for each video file
-        const { data: urlData } = supabase.storage.from('recordings').getPublicUrl(file.name);
-        
-        // 3. Create a small "Preview" card for the video
-        const card = document.createElement('div');
-        card.style.background = "rgba(255,255,255,0.1)";
-        card.style.padding = "10px";
-        card.style.borderRadius = "10px";
-        
-        card.innerHTML = `
-            <video src="${urlData.publicUrl}" controls style="width: 100%; border-radius: 5px;"></video>
-            <p style="font-size: 0.8rem; margin-top: 5px;">${file.name}</p>
-            <a href="${urlData.publicUrl}" download style="color: var(--primary); font-size: 0.7rem;">Download</a>
-        `;
-        listContainer.appendChild(card);
-    });
-}</script>
