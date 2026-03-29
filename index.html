@@ -15,10 +15,9 @@
         .app-shell { max-width: 400px; margin: 0 auto; height: 100vh; background: white; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
         .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 35px; text-align: center; }
         
-        /* 1. FIXED COLORFUL LOGO */
-        .logo { width: 100px; height: 100px; margin-bottom: 15px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1)); }
+        /* THE FIXED WORLD LOGO */
+        .logo { width: 100px; height: 100px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); }
         
-        /* 2. MODERN INPUTS */
         input { width: 100%; padding: 16px; margin: 10px 0; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.2s; background: #fdfdfd; }
         input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
         
@@ -27,23 +26,23 @@
         
         .btn-signup { background: var(--secondary); }
         .btn-login { background: var(--primary); }
-        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        button:hover { opacity: 0.95; transform: translateY(-1px); }
         
         .toggle-text { margin-top: 20px; font-size: 14px; color: #64748b; }
-        .toggle-text span { color: var(--primary); font-weight: bold; cursor: pointer; text-decoration: underline; }
+        .toggle-text span { color: var(--primary); font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
     <div class="container">
-        <!-- New Colorful Globe Logo -->
-        <img src="https://cdn-icons-png.flaticon.com/512/281/281764.png" class="logo" alt="World Logo">
+        <!-- REAL WORLD GLOBE LOGO -->
+        <img src="https://cdn-icons-png.flaticon.com/512/4433/4433104.png" class="logo" alt="World Logo">
         
         <h1 style="margin:0; letter-spacing: -1px; color: #1e293b;">worldconnect</h1>
         <p style="color:#64748b; font-size:14px; margin-bottom:30px;">Universal AI & Video Super-App</p>
 
-        <!-- 3. SINGLE LINE FOR EMAIL/PHONE -->
+        <!-- SINGLE LINE FOR EMAIL OR PHONE -->
         <input type="text" id="user-identifier" placeholder="Email or Phone Number">
         <input type="password" id="password" placeholder="Password">
 
@@ -56,7 +55,7 @@
 </div>
 
 <script>
-    // --- INSERT YOUR KEYS HERE ---
+    // --- YOUR KEYS ---
     const SUPABASE_URL = 'https://uyhtzjhdepkgrxqgjwma.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5aHR6amhkZXBrZ3J4cWdqd21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQzMjMsImV4cCI6MjA5MDA3MDMyM30.3OLgsxKKOOeS1PoD5NxcZ-VU6zwrt5A629ipJb79vxo';
     const AGORA_APP_ID = '5920000068ae49eea6e5a4fb5675d8c3'; 
@@ -65,12 +64,10 @@
 
     let isLoginMode = false;
 
-    // Toggle Functionality
     document.getElementById('toggle-mode').onclick = () => {
         isLoginMode = !isLoginMode;
         const btn = document.getElementById('submit-btn');
         const toggleText = document.getElementById('toggle-mode');
-        const identifierInput = document.getElementById('user-identifier');
 
         if (isLoginMode) {
             btn.textContent = 'Login';
@@ -83,7 +80,6 @@
         }
     };
 
-    // Form Submission
     document.getElementById('submit-btn').onclick = async () => {
         const identifier = document.getElementById('user-identifier').value.trim();
         const password = document.getElementById('password').value;
