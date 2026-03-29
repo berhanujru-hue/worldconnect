@@ -2,116 +2,172 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>worldconnect AI 🌍</title>
     
+    <!-- 1. AGORA LIBRARY (THE VIDEO ENGINE) -->
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
+    
+    <!-- 2. SUPABASE LIBRARY (THE DATABASE ENGINE) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root { --wa-green: #128C7E; --bg: #f0f2f5; --white: #ffffff; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, sans-serif; background: #f0f2f5; }
-
-        .app-shell { 
-            max-width: 420px; 
-            margin: 0 auto; 
-            height: 100vh; 
-            background: var(--white); 
-            display: flex; 
-            flex-direction: column; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        :root {
+            --primary: #2563eb;
+            --wa-green: #128C7E;
+            --bg: #f8fafc;
+            --white: #ffffff;
         }
 
-        #auth-page { padding: 40px 25px; text-align: center; display: flex; flex-direction: column; justify-content: center; height: 100%; }
-        .world-icon { font-size: 70px; margin-bottom: 10px; }
-        h1 { color: var(--wa-green); margin: 0; font-size: 28px; letter-spacing: -1px; }
-        .tagline { color: #888; font-size: 13px; margin-bottom: 35px; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+        }
 
-        /* THE SMART INPUT */
-        .input-box { 
-            width: 100%; 
-            padding: 16px; 
-            margin-bottom: 12px; 
-            border: 1.5px solid #eee; 
-            border-radius: 12px; 
-            font-size: 16px; 
+        .app-shell {
+            max-width: 420px;
+            margin: 0 auto;
+            height: 100vh;
+            background: var(--white);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .login-screen {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .logo-container img {
+            width: 80px;
+            margin-bottom: 10px;
+        }
+
+        /* PROFILE PICTURE STYLE */
+        .profile-upload {
+            margin-bottom: 25px;
+            position: relative;
+        }
+        #profile-preview {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            background: #f1f5f9;
+            padding: 2px;
+        }
+        .file-label {
+            display: block;
+            margin-top: 8px;
+            font-size: 13px;
+            color: var(--primary);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             box-sizing: border-box;
-            outline: none;
-            background: #fafafa;
+            font-size: 16px;
         }
 
-        /* BUTTON GROUP */
-        .btn-row { display: flex; gap: 10px; margin-top: 10px; }
-        .btn { flex: 1; padding: 16px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn-login { background: var(--wa-green); color: white; }
-        .btn-signup { background: #e8f5e9; color: var(--wa-green); border: 1px solid var(--wa-green); }
+        .btn-group { width: 100%; margin-top: 20px; }
 
-        #main-app { display: none; height: 100%; flex-direction: column; text-align: center; justify-content: center; }
+        button {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .btn-login { background: var(--primary); color: white; }
+        .btn-signup { background: #f1f5f9; color: #475569; }
     </style>
 </head>
 <body>
-    <script>
-        // --- PUT YOUR KEYS HERE ---
-        const AGORA_ID = "5920000068ae49eea6e5a4fb5675d8c3"; 
-        const SB_URL = "https://uyhtzjhdepkgrxqgjwma.supabase.co";    
-        const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5aHR6amhkZXBrZ3J4cWdqd21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQzMjMsImV4cCI6MjA5MDA3MDMyM30.3OLgsxKKOOeS1PoD5NxcZ-VU6zwrt5A629ipJb79vxo";    
 
-        const mysupabase = libSupabase.createClient(SB_URL, SB_KEY);
-
-        async function handleAuth(type) {
-            const id = document.getElementById('user-id').value;
-            const pass = document.getElementById('user-pass').value;
-
-            if(!id || !pass) return alert("Please fill in the details");
-
-            // AI Logic: Detect if the user typed an email or phone
-            const isEmail = id.includes('@');
-            const credentials = isEmail ? { email: id, password: pass } : { phone: id, password: pass };
-
-            if(type === 'signup') {
-                const { error } = await mysupabase.auth.signUp(credentials);
-                if(error) alert(error.message); else enter();
-            } else {
-                const { error } = await mysupabase.auth.signInWithPassword(credentials);
-                if(error) alert(error.message); else enter();
-            }
-        }
-
-        function founderEntry() {
-            if(prompt("Founder Code:") === "OWNER123") enter();
-        }
-
-        function enter() {
-            document.getElementById('auth-page').style.display = 'none';
-            document.getElementById('main-app').style.display = 'flex';
-        }
-    </script>
-    <div class="app-shell">
-        
-        <!-- AUTH SECTION -->
-        <div id="auth-page">
-            <div class="world-icon">🌍</div>
-            <h1>worldconnect</h1>
-            <p class="tagline">Universal AI & Video Super-App</p>
-
-            <input type="text" id="user-id" class="input-box" placeholder="Email or Phone Number">
-            <input type="password" id="user-pass" class="input-box" placeholder="Password">
-            
-            <div class="btn-row">
-                <button class="btn btn-login" onclick="handleAuth('login')">Login</button>
-                <button class="btn btn-signup" onclick="handleAuth('signup')">Sign Up</button>
-            </div>
-            
-            <p onclick="founderEntry()" style="font-size:10px; color:#eee; margin-top:50px; cursor:pointer;">Founder Portal</p>
+<div class="app-shell">
+    <div class="login-screen">
+        <div class="logo-container">
+            <img src="https://cdn-icons-png.flaticon.com/512/281/281764.png" alt="logo">
+            <h1 style="margin:0;">worldconnect</h1>
+            <p style="color: #64748b;">Universal AI & Video Super-App</p>
         </div>
 
-        <!-- MAIN APP (Placeholder for testing) -->
-        <div id="main-app">
-            <h2 style="color:var(--wa-green)">Success!</h2>
-            <p>Welcome to worldconnect AI.</p>
-            <button class="btn btn-login" style="width:150px; margin: 0 auto;" onclick="location.reload()">Logout</button>
+        <!-- PROFILE SECTION -->
+        <div class="profile-upload">
+            <img id="profile-preview" src="https://via.placeholder.com/110" alt="Profile">
+            <label for="profile-input" class="file-label">📸 Change Photo</label>
+            <input type="file" id="profile-input" style="display:none" accept="image/*">
         </div>
 
+        <input type="email" id="user-id" placeholder="Email">
+        <input type="password" id="user-pass" placeholder="Password">
+
+        <div class="btn-group">
+            <button class="btn-login" onclick="handleAuth('login')">Login</button>
+            <button class="btn-signup" onclick="handleAuth('signup')">Sign Up</button>
+        </div>
     </div>
+</div>
+
+<script>
+    // 3. YOUR DATABASE KEYS (REPLACE THE TEXT INSIDE THE QUOTES
+    const AGORA_APP_ID='5920000068ae49eea6e5a4fb5675d8c3';)
+    const SUPABASE_URL = 'https://uyhtzjhdepkgrxqgjwma.supabase.co'; 
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5aHR6amhkZXBrZ3J4cWdqd21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQzMjMsImV4cCI6MjA5MDA3MDMyM30.3OLgsxKKOOeS1PoD5NxcZ-VU6zwrt5A629ipJb79vxo';
+
+    const mysupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Profile Preview Logic
+    document.getElementById('profile-input').onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+            document.getElementById('profile-preview').src = URL.createObjectURL(file);
+        }
+    };
+
+    async function handleAuth(type) {
+        const email = document.getElementById('user-id').value;
+        const password = document.getElementById('user-pass').value;
+
+        if (!email || !password) {
+            alert("Please fill in both fields!");
+            return;
+        }
+
+        try {
+            if (type === 'signup') {
+                const { data, error } = await mysupabase.auth.signUp({ email, password });
+                if (error) throw error;
+                alert("Success! Check your email for a verification link.");
+            } else {
+                const { data, error } = await mysupabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                alert("Welcome back! You are logged in.");
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Oops: " + err.message);
+        }
+    }
+</script>
+
 </body>
 </html>
