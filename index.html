@@ -5,168 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>worldconnect AI 🌍</title>
     
-    <!-- 1. AGORA LIBRARY (THE VIDEO ENGINE) -->
+    <!-- Libraries -->
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
-    
-    <!-- 2. SUPABASE LIBRARY (THE DATABASE ENGINE) -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
-        :root {
-            --primary: #2563eb;
-            --wa-green: #128C7E;
-            --bg: #f8fafc;
-            --white: #ffffff;
-        }
-
-        body, html { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-        }
-
-        .app-shell {
-            max-width: 420px;
-            margin: 0 auto;
-            height: 100vh;
-            background: var(--white);
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
-
-        .login-screen {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            text-align: center;
-        }
-
-        .logo-container img {
-            width: 80px;
-            margin-bottom: 10px;
-        }
-
-        /* PROFILE PICTURE STYLE */
-        .profile-upload {
-            margin-bottom: 25px;
-            position: relative;
-        }
-        #profile-preview {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 4px solid var(--primary);
-            background: #f1f5f9;
-            padding: 2px;
-        }
-        .file-label {
-            display: block;
-            margin-top: 8px;
-            font-size: 13px;
-            color: var(--primary);
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        input {
-            width: 100%;
-            padding: 15px;
-            margin: 10px 0;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-
+        :root { --primary: #3b82f6; --secondary: #2dd4bf; --bg: #f8fafc; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: sans-serif; background: var(--bg); }
+        .app-shell { max-width: 400px; margin: 0 auto; height: 100vh; background: white; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
+        
+        /* World Logo */
+        .logo { width: 80px; margin-bottom: 10px; }
+        
+        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        
         .btn-group { width: 100%; margin-top: 20px; }
-
-        button {
-            width: 100%;
-            padding: 15px;
-            border-radius: 12px;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-
-        .btn-login { background: var(--primary); color: white; }
-        .btn-signup { background: #f1f5f9; color: #475569; }
+        button { width: 100%; padding: 14px; border-radius: 8px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 10px; color: white; transition: 0.3s; }
+        
+        .btn-signup { background: var(--secondary); }
+        .btn-login { background: var(--primary); }
+        
+        .toggle-text { margin-top: 15px; font-size: 14px; color: #64748b; cursor: pointer; }
+        .toggle-text span { color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
-    <div class="login-screen">
-        <div class="logo-container">
-            <img src="https://cdn-icons-png.flaticon.com/512/281/281764.png" alt="logo">
-            <h1 style="margin:0;">worldconnect</h1>
-            <p style="color: #64748b;">Universal AI & Video Super-App</p>
-        </div>
+    <div class="container" id="auth-form">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Globe_icon_2.svg" class="logo" alt="Globe">
+        <h2 style="margin:0;">worldconnect</h2>
+        <p style="color:#64748b; font-size:14px; margin-bottom:20px;">AI & Video Super-App</p>
 
-        <!-- PROFILE SECTION -->
-        <div class="profile-upload">
-            <img id="profile-preview" src="https://via.placeholder.com/110" alt="Profile">
-            <label for="profile-input" class="file-label">📸 Change Photo</label>
-            <input type="file" id="profile-input" style="display:none" accept="image/*">
-        </div>
-
-        <input type="email" id="user-id" placeholder="Email">
-        <input type="password" id="user-pass" placeholder="Password">
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="password" placeholder="Password">
+        <input type="tel" id="phone" placeholder="Phone Number">
 
         <div class="btn-group">
-            <button class="btn-login" onclick="handleAuth('login')">Login</button>
-            <button class="btn-signup" onclick="handleAuth('signup')">Sign Up</button>
+            <button id="submit-btn" class="btn-signup">Sign Up</button>
         </div>
+
+        <p class="toggle-text" id="toggle-mode">Already have an account? <span>Login</span></p>
     </div>
 </div>
 
 <script>
-    // 3. YOUR DATABASE KEYS (REPLACE THE TEXT INSIDE THE QUOTES
-    const AGORA_APP_ID='5920000068ae49eea6e5a4fb5675d8c3';)
-    const SUPABASE_URL = 'https://uyhtzjhdepkgrxqgjwma.supabase.co'; 
+    // --- INSERT YOUR KEYS BELOW ---
+    const SUPABASE_URL = 'https://uyhtzjhdepkgrxqgjwma.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5aHR6amhkZXBrZ3J4cWdqd21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQzMjMsImV4cCI6MjA5MDA3MDMyM30.3OLgsxKKOOeS1PoD5NxcZ-VU6zwrt5A629ipJb79vxo';
+    
+    // HERE IS THE AGORA KEY PLACE YOU ASKED FOR:
+    const AGORA_APP_ID = '5920000068ae49eea6e5a4fb5675d8c3'; 
 
-    const mysupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Profile Preview Logic
-    document.getElementById('profile-input').onchange = e => {
-        const file = e.target.files[0];
-        if (file) {
-            document.getElementById('profile-preview').src = URL.createObjectURL(file);
+    let isLoginMode = false;
+
+    // Toggle between Login and Signup
+    document.getElementById('toggle-mode').onclick = () => {
+        isLoginMode = !isLoginMode;
+        const btn = document.getElementById('submit-btn');
+        const phone = document.getElementById('phone');
+        const toggleText = document.getElementById('toggle-mode');
+
+        if (isLoginMode) {
+            btn.textContent = 'Login';
+            btn.className = 'btn-login';
+            phone.style.display = 'none';
+            toggleText.innerHTML = "Don't have an account? <span>Sign Up</span>";
+        } else {
+            btn.textContent = 'Sign Up';
+            btn.className = 'btn-signup';
+            phone.style.display = 'block';
+            toggleText.innerHTML = "Already have an account? <span>Login</span>";
         }
     };
 
-    async function handleAuth(type) {
-        const email = document.getElementById('user-id').value;
-        const password = document.getElementById('user-pass').value;
+    // Handle Button Click
+    document.getElementById('submit-btn').onclick = async () => {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const phone = document.getElementById('phone').value;
 
-        if (!email || !password) {
-            alert("Please fill in both fields!");
-            return;
-        }
+        if (!email || !password) return alert("Fill in email and password!");
 
         try {
-            if (type === 'signup') {
-                const { data, error } = await mysupabase.auth.signUp({ email, password });
+            if (isLoginMode) {
+                const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-                alert("Success! Check your email for a verification link.");
+                alert("Login Successful!");
             } else {
-                const { data, error } = await mysupabase.auth.signInWithPassword({ email, password });
+                const { error } = await supabaseClient.auth.signUp({ 
+                    email, 
+                    password, 
+                    options: { data: { phone: phone } } 
+                });
                 if (error) throw error;
-                alert("Welcome back! You are logged in.");
+                alert("Sign Up Successful! Check your email.");
             }
         } catch (err) {
-            console.error(err);
-            alert("Oops: " + err.message);
+            alert(err.message);
         }
-    }
+    };
 </script>
 
 </body>
