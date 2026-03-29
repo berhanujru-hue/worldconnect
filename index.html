@@ -5,22 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>worldconnect AI 🌍</title>
     
-    <!-- Libraries -->
-    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
+    
+<script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         :root { --primary: #3b82f6; --secondary: #2dd4bf; --bg: #f8fafc; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, sans-serif; background: var(--bg); }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); }
         .app-shell { max-width: 400px; margin: 0 auto; height: 100vh; background: white; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
         .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 35px; text-align: center; }
         
-        /* THE FIXED WORLD LOGO */
-        .logo { width: 100px; height: 100px; margin-bottom: 15px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15)); }
+        /* THE BEAUTIFUL CIRCULAR WORLD LOGO */
+        .logo { width: 110px; height: 110px; margin-bottom: 20px; border-radius: 50%; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15)); }
         
+        /* Input Styling */
         input { width: 100%; padding: 16px; margin: 10px 0; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.2s; background: #fdfdfd; }
         input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
         
+        /* Button Styling */
         .btn-group { width: 100%; margin-top: 25px; }
         button { width: 100%; padding: 16px; border-radius: 12px; border: none; font-size: 16px; font-weight: bold; cursor: pointer; margin-bottom: 12px; color: white; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
         
@@ -28,22 +30,23 @@
         .btn-login { background: var(--primary); }
         button:hover { opacity: 0.95; transform: translateY(-1px); }
         
+        /* Toggle Styling */
         .toggle-text { margin-top: 20px; font-size: 14px; color: #64748b; }
-        .toggle-text span { color: var(--primary); font-weight: bold; cursor: pointer; }
+        .toggle-text span { color: var(--primary); font-weight: bold; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
     <div class="container">
-        <!-- REAL WORLD GLOBE LOGO -->
-        <img src="https://cdn-icons-png.flaticon.com/512/4433/4433104.png" class="logo" alt="World Logo">
         
-        <h1 style="margin:0; letter-spacing: -1px; color: #1e293b;">worldconnect</h1>
-        <p style="color:#64748b; font-size:14px; margin-bottom:30px;">Universal AI & Video Super-App</p>
+<img src="https://image.spreadshirtmedia.com/image-server/v1/mp/products/T1457A2MPA3861PT17X51Y49D1041935824W10000H10000/views/1,width=1200,height=1200,appearanceId=2,backgroundColor=F2F2F2/3d-earth-globe-in-blue-green-and-white.jpg" class="logo" alt="Circular World Logo">
+        
+        <h1 style="margin:0; letter-spacing: -1.5px; color: #1e293b; font-weight: 800;">worldconnect</h1>
+        <p style="color:#64748b; font-size:14px; margin-bottom:35px;">AI & Video Super-App</p>
 
-        <!-- SINGLE LINE FOR EMAIL OR PHONE -->
-        <input type="text" id="user-identifier" placeholder="Email or Phone Number">
+        
+<input type="text" id="user-identifier" placeholder="Email or Phone Number">
         <input type="password" id="password" placeholder="Password">
 
         <div class="btn-group">
@@ -55,15 +58,17 @@
 </div>
 
 <script>
-    // --- YOUR KEYS ---
-    const SUPABASE_URL = 'https://uyhtzjhdepkgrxqgjwma.supabase.co';
+    // --- YOUR KEYS GO HERE ---
+    // Remember to paste your actual values inside the single quotes!
+    const SUPABASE_URL = 'https://uyhtzjhdepkgrxqgjwma.supabase.co'; 
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5aHR6amhkZXBrZ3J4cWdqd21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQzMjMsImV4cCI6MjA5MDA3MDMyM30.3OLgsxKKOOeS1PoD5NxcZ-VU6zwrt5A629ipJb79vxo';
-    const AGORA_APP_ID = '5920000068ae49eea6e5a4fb5675d8c3'; 
+    const AGORA_APP_ID = '5920000068ae49eea6e5a4fb5675d8c3'; // Add this for later
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     let isLoginMode = false;
 
+    // Toggle Functionality
     document.getElementById('toggle-mode').onclick = () => {
         isLoginMode = !isLoginMode;
         const btn = document.getElementById('submit-btn');
@@ -80,6 +85,7 @@
         }
     };
 
+    // Form Submission
     document.getElementById('submit-btn').onclick = async () => {
         const identifier = document.getElementById('user-identifier').value.trim();
         const password = document.getElementById('password').value;
@@ -87,17 +93,21 @@
         if (!identifier || !password) return alert("Please fill in all fields!");
 
         try {
+            // Check if user entered email or just a number
             const isEmail = identifier.includes('@');
             const authData = isEmail ? { email: identifier, password } : { phone: identifier, password };
 
             if (isLoginMode) {
+                // Fixed Case in signIN
                 const { error } = await supabaseClient.auth.signInWithPassword(authData);
                 if (error) throw error;
                 alert("Welcome back!");
+                // Here we will eventually redirect to the profile creation page
             } else {
+                // Fixed Case in signUP
                 const { error } = await supabaseClient.auth.signUp(authData);
                 if (error) throw error;
-                alert("Sign Up Successful! Check your email to confirm.");
+                alert("Sign Up Successful! Please check for verification.");
             }
         } catch (err) {
             alert(err.message);
