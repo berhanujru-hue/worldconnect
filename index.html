@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>worldconnect AI 🌍</title>
     
-    <!-- Libraries -->
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -15,19 +14,18 @@
         .app-shell { max-width: 400px; margin: 0 auto; height: 100vh; background: white; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
         .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 35px; text-align: center; }
         
-        /* 1. THE PERFECT TRANSPARENT WORLD LOGO */
+        /* THE LOGO STYLE (The actual image is linked below) */
         .logo { 
             width: 120px; 
             height: 120px; 
-            margin-bottom: 15px; 
-            border-radius: 50%; 
+            margin-bottom: 20px; 
             object-fit: contain;
-            filter: drop-shadow(0 8px 15px rgba(0,0,0,0.1));
+            /* Added shadow to match your beautiful design */
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15)); 
         }
         
         h1 { margin: 0; letter-spacing: -1.5px; color: #1e293b; font-weight: 800; font-size: 28px; }
         
-        /* 2. MODERN COMBINED INPUT */
         input { 
             width: 100%; 
             padding: 16px; 
@@ -61,15 +59,14 @@
         button:active { transform: scale(0.98); }
         
         .toggle-text { margin-top: 20px; font-size: 14px; color: #64748b; }
-        .toggle-text span { color: var(--primary); font-weight: bold; cursor: pointer; }
+        .toggle-text span { color: var(--primary); font-weight: bold; cursor: pointer; text-decoration: underline; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
     <div class="container">
-        <!-- New Transparent High-Quality Globe -->
-        <img src="https://cdn-icons-png.flaticon.com/512/3843/3843033.png" class="logo" alt="World Logo">
+        <img src="https://via.placeholder.com/120?text=Paste+Logo+Here" class="logo" alt="World Logo">
         
         <h1>worldconnect</h1>
         <p style="color:#64748b; font-size:15px; margin-bottom:35px;">AI & Video Super-App</p>
@@ -86,7 +83,7 @@
 </div>
 
 <script>
-    // --- INSERT YOUR KEYS HERE ---
+    // --- YOUR KEYS ---
     const SUPABASE_URL = 'https://uyhtzjhdepkgrxqgjwma.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV5aHR6amhkZXBrZ3J4cWdqd21hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ0OTQzMjMsImV4cCI6MjA5MDA3MDMyM30.3OLgsxKKOOeS1PoD5NxcZ-VU6zwrt5A629ipJb79vxo';
     const AGORA_APP_ID = '5920000068ae49eea6e5a4fb5675d8c3'; 
@@ -95,7 +92,7 @@
 
     let isLoginMode = false;
 
-    // Toggle between Login and Signup
+    // Toggle logic
     document.getElementById('toggle-mode').onclick = () => {
         isLoginMode = !isLoginMode;
         const btn = document.getElementById('submit-btn');
@@ -112,12 +109,12 @@
         }
     };
 
-    // Form Handling
+    // Form logic
     document.getElementById('submit-btn').onclick = async () => {
         const identifier = document.getElementById('user-identifier').value.trim();
         const password = document.getElementById('password').value;
 
-        if (!identifier || !password) return alert("Please enter your details!");
+        if (!identifier || !password) return alert("Please fill in all fields!");
 
         try {
             const isEmail = identifier.includes('@');
@@ -126,11 +123,11 @@
             if (isLoginMode) {
                 const { error } = await supabaseClient.auth.signInWithPassword(authData);
                 if (error) throw error;
-                alert("Welcome back!");
+                alert("Login Successful!");
             } else {
                 const { error } = await supabaseClient.auth.signUp(authData);
                 if (error) throw error;
-                alert("Sign Up Successful! Please check your verification.");
+                alert("Sign Up Successful! Please check for verification.");
             }
         } catch (err) {
             alert(err.message);
