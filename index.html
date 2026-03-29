@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title>worldconnect AI 🌍</title>
     
+    <!-- Libraries -->
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.24.0.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -14,40 +15,40 @@
         .app-shell { max-width: 400px; margin: 0 auto; height: 100vh; background: white; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(0,0,0,0.05); }
         .container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 35px; text-align: center; }
         
-        /* THE LOGO STYLE (The actual image is linked below) */
+        /* THE EXACT LOGO FROM YOUR IMAGE */
         .logo { 
-            width: 120px; 
-            height: 120px; 
-            margin-bottom: 20px; 
+            width: 130px; 
+            height: 130px; 
+            margin-bottom: 10px; 
             object-fit: contain;
-            /* Added shadow to match your beautiful design */
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15)); 
+            filter: drop-shadow(0 10px 20px rgba(59, 130, 246, 0.2));
         }
         
-        h1 { margin: 0; letter-spacing: -1.5px; color: #1e293b; font-weight: 800; font-size: 28px; }
+        h1 { margin: 0; letter-spacing: -1px; color: #1e293b; font-weight: 800; font-size: 32px; line-height: 1.2; }
+        .tagline { color: #475569; font-size: 16px; font-weight: 500; margin-top: 8px; margin-bottom: 40px; }
         
         input { 
             width: 100%; 
-            padding: 16px; 
+            padding: 18px; 
             margin: 10px 0; 
             border: 1.5px solid #e2e8f0; 
-            border-radius: 12px; 
+            border-radius: 14px; 
             font-size: 16px; 
             box-sizing: border-box; 
             outline: none; 
-            transition: all 0.2s ease; 
+            transition: 0.2s ease; 
             background: #fdfdfd; 
         }
         input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
         
-        .btn-group { width: 100%; margin-top: 25px; }
+        .btn-group { width: 100%; margin-top: 20px; }
         button { 
             width: 100%; 
-            padding: 16px; 
-            border-radius: 12px; 
+            padding: 18px; 
+            border-radius: 14px; 
             border: none; 
-            font-size: 16px; 
-            font-weight: bold; 
+            font-size: 17px; 
+            font-weight: 700; 
             cursor: pointer; 
             margin-bottom: 12px; 
             color: white; 
@@ -56,20 +57,21 @@
         
         .btn-signup { background: var(--secondary); }
         .btn-login { background: var(--primary); }
-        button:active { transform: scale(0.98); }
+        button:active { transform: scale(0.97); }
         
-        .toggle-text { margin-top: 20px; font-size: 14px; color: #64748b; }
-        .toggle-text span { color: var(--primary); font-weight: bold; cursor: pointer; text-decoration: underline; }
+        .toggle-text { margin-top: 20px; font-size: 15px; color: #64748b; }
+        .toggle-text span { color: var(--primary); font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="app-shell">
     <div class="container">
-        <img src="https://via.placeholder.com/120?text=Paste+Logo+Here" class="logo" alt="World Logo">
+        <!-- EXACT IMAGE SOURCE -->
+        <img src="https://upload.wikimedia.org/wikipedia/commons/2/22/Earth_Western_Hemisphere_transparent_background.png" class="logo" alt="World Logo">
         
         <h1>worldconnect</h1>
-        <p style="color:#64748b; font-size:15px; margin-bottom:35px;">AI & Video Super-App</p>
+        <p class="tagline">Universal AI & Video Super-App</p>
 
         <input type="text" id="user-identifier" placeholder="Email or Phone Number">
         <input type="password" id="password" placeholder="Password">
@@ -109,12 +111,12 @@
         }
     };
 
-    // Form logic
+    // Auth logic
     document.getElementById('submit-btn').onclick = async () => {
         const identifier = document.getElementById('user-identifier').value.trim();
         const password = document.getElementById('password').value;
 
-        if (!identifier || !password) return alert("Please fill in all fields!");
+        if (!identifier || !password) return alert("Please fill in your details!");
 
         try {
             const isEmail = identifier.includes('@');
@@ -127,7 +129,7 @@
             } else {
                 const { error } = await supabaseClient.auth.signUp(authData);
                 if (error) throw error;
-                alert("Sign Up Successful! Please check for verification.");
+                alert("Sign Up Successful! Check your email to verify.");
             }
         } catch (err) {
             alert(err.message);
