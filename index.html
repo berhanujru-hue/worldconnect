@@ -50,35 +50,6 @@
     </style>
 </head>
 <body>
-
-    <div class="app-shell">
-        
-        <!-- AUTH SECTION -->
-        <div id="auth-page">
-            <div class="world-icon">🌍</div>
-            <h1>worldconnect</h1>
-            <p class="tagline">Universal AI & Video Super-App</p>
-
-            <input type="text" id="user-id" class="input-box" placeholder="Email or Phone Number">
-            <input type="password" id="user-pass" class="input-box" placeholder="Password">
-            
-            <div class="btn-row">
-                <button class="btn btn-login" onclick="handleAuth('login')">Login</button>
-                <button class="btn btn-signup" onclick="handleAuth('signup')">Sign Up</button>
-            </div>
-            
-            <p onclick="founderEntry()" style="font-size:10px; color:#eee; margin-top:50px; cursor:pointer;">Founder Portal</p>
-        </div>
-
-        <!-- MAIN APP (Placeholder for testing) -->
-        <div id="main-app">
-            <h2 style="color:var(--wa-green)">Success!</h2>
-            <p>Welcome to worldconnect AI.</p>
-            <button class="btn btn-login" style="width:150px; margin: 0 auto;" onclick="location.reload()">Logout</button>
-        </div>
-
-    </div>
-
     <script>
         // --- PUT YOUR KEYS HERE ---
         const AGORA_ID = "5920000068ae49eea6e5a4fb5675d8c3"; 
@@ -115,5 +86,32 @@
             document.getElementById('main-app').style.display = 'flex';
         }
     </script>
+    <div class="app-shell">
+        
+        <!-- AUTH SECTION -->
+        <div id="auth-page">
+            <div class="world-icon">🌍</div>
+            <h1>worldconnect</h1>
+            <p class="tagline">Universal AI & Video Super-App</p>
+
+            <input type="text" id="user-id" class="input-box" placeholder="Email or Phone Number">
+            <input type="password" id="user-pass" class="input-box" placeholder="Password">
+            
+            <div class="btn-row">
+                <button class="btn btn-login" onclick="handleAuth('login')">Login</button>
+                <button class="btn btn-signup" onclick="handleAuth('signup')">Sign Up</button>
+            </div>
+            
+            <p onclick="founderEntry()" style="font-size:10px; color:#eee; margin-top:50px; cursor:pointer;">Founder Portal</p>
+        </div>
+
+        <!-- MAIN APP (Placeholder for testing) -->
+        <div id="main-app">
+            <h2 style="color:var(--wa-green)">Success!</h2>
+            <p>Welcome to worldconnect AI.</p>
+            <button class="btn btn-login" style="width:150px; margin: 0 auto;" onclick="location.reload()">Logout</button>
+        </div>
+
+    </div>
 </body>
 </html>
