@@ -126,6 +126,17 @@
                 const { error } = await supabaseClient.auth.signInWithPassword(authData);
                 if (error) throw error;
                 alert("Login Successful!");
+                if (isLoginMode) {
+    const { data, error } = await supabaseClient.auth.signInWithPassword(authData);
+    if (error) throw error;
+    
+    // THIS LINE MAKES IT LIVE:
+    window.location.href = "home.html"; 
+} else {
+    const { error } = await supabaseClient.auth.signUp(authData);
+    if (error) throw error;
+    alert("Sign Up Successful! Check your email to verify your account before logging in.");
+}
             } else {
                 const { error } = await supabaseClient.auth.signUp(authData);
                 if (error) throw error;
