@@ -111,7 +111,9 @@
 
             document.getElementById('join-btn').style.display = 'none';
             document.getElementById('leave-btn').style.display = 'block';
-            addChatBubble("ai", "Connected to " + room + ". You are now live globally.");
+            // Ask Gemini for a welcome message
+const aiWelcome = await askTheBrain("I just joined the room " + room + ". Say something short and welcoming!");
+addChatBubble("ai", aiWelcome);
         } catch (err) {
             console.error(err);
             alert("Connection error. Ensure your Agora App ID is correct.");
